@@ -1,0 +1,114 @@
+#!/bin/bash
+
+clear
+
+# set log info
+logPath="/var/log/install"
+sudo rm -rf $logPath
+sudo mkdir $logPath
+
+
+# Pre-update steps
+
+# Owncloud PPT
+echo "deb http://download.opensuse.org/repositories/isv:/ownCloud:/desktop/xUbuntu_$(grep ^DISTRIB_RELEASE= /etc/lsb-release | cut -d= -f2)/ /" | sudo tee -a /etc/apt/sources.list.d/owncloud.list
+wget http://download.opensuse.org/repositories/isv:ownCloud:desktop/xUbuntu_$(grep ^DISTRIB_RELEASE= /etc/lsb-release | cut -d= -f2)/Release.key -O - | sudo apt-key add -
+
+# Update existing
+echo -e "\e[1m\e[32mUpdate existing packets...\e[0m\e[39m"
+sudo apt-get -y update
+echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+
+echo -e "\e[1m\e[32mUpgrade existing packets...\e[0m\e[39m"
+sudo apt-get -y upgrade
+echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+
+# list of APT main packages to install
+packages=('git' 'apache2' 'php5' 'mysql-server' 'php5-mysql' 'phpmyadmin' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk')
+
+for i in ${!packages[*]}
+do
+  	echo -e "\e[1m\e[32mInstalling package ${packages[$i]}...\e[0m\e[39m"	
+	sudo apt-get install -qy ${packages[$i]}
+	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+
+	# Last config
+	case "${packages[$i]}" in
+		"phpmyadmin")
+		echo -e "\e[1m\e[32mComplementary steps for ${packages[$i]} \e[0m\e[39m"
+		# Create symlink to phpmyadmin apache conf file directly to sites-enabled
+		sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/sites-enabled/phpmyadmin.conf
+		sudo service apache2 restart
+
+	esac
+done
+
+
+# Chrome
+echo -e "\e[1m\e[32mInstalling Chrome...\e[0m\e[39m"
+
+chromeInstalled=$(dpkg-query -W --showformat='${Status}\n' google-chrome-stable|grep "install ok installed")
+
+if [ "" == "$chromeInstalled" ]; then
+	sudo apt-get install -qy libxss1 libappindicator1 libindicator7
+	wget --output-document chrome https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+	sudo dpkg -i chrome
+	sudo apt-get install -fqy
+	rm -rf chrome
+else
+	echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
+fi
+echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+
+# Skype
+echo -e "\e[1m\e[32mInstalling Skype...\e[0m\e[39m"
+
+skypeInstalled=$(dpkg-query -W --showformat='${Status}\n' skype|grep "install ok installed")
+
+
+if [ "" == "$skypeInstalled" ]; then
+	sudo apt-get install libqt4-dbus libqt4-network libqt4-xml libasound2
+	wget --output-document skype http://www.skype.com/go/getskype-linux-beta-ubuntu-64
+	sudo dpkg -i skype
+	sudo apt-get -fqy install
+	rm -rf skype
+	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+else
+	echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
+fi
+
+# Team Viewer
+
+# Php storm 9
+echo -e "\e[1m\e[32mPHP Storm 9...\e[0m\e[39m"
+wget "http://download.jetbrains.com/webide/PhpStorm-9.0.tar.gz"
+mkdir phpstorm && tar xfz PhpStorm-*.tar.gz -C phpstorm
+sudo sh phpstorm/PhpStorm-141.1912/bin/phpstorm.sh
+echo -e "\e[1m\e[32mDone.\e[0m\e[39m
+
+
+# Printer software
+echo -e "\e[1m\e[32mPrinter software...\e[0m\e[39m"
+
+hplipInstalled=$(dpkg-query -W --showformat='${Status}\n' hplip|grep "deinstall ok config-files")
+
+if [ "" == "$hplipInstalled" ]; then
+	sudo apt-get install -y --assume-yes avahi-utils libcups2 cups libcups2-dev cups-bsd cups-client libcupsimage2-dev libdbus-1-dev build-essential ghostscript openssl libjpeg-dev libsnmp-dev snmp-mibs-downloader libtool libusb-1.0.0-dev wget policykit-1 policykit-1-gnome python3-dbus python3-gi python3-dev python3-notify2 python3-pil python3-pyqt4 gtk2-engines-pixbuf python3-dbus.mainloop.qt python3-reportlab python3-lxml libsane libsane-dev sane-utils xsane
+	wget --output-document hplip.run "http://downloads.sourceforge.net/project/hplip/hplip/3.15.9/hplip-3.15.9.run?r=&ts=1442571881&use_mirror=skylink"
+	bash hplip.run
+	rm -rf hp*
+	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+else
+        echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
+fi
+
+# Set favorites
+echo -e "\e[1m\e[32mSet favorites.\e[0m\e[39m"
+dconf write /org/gnome/shell/favorite-apps "['nautilus.desktop', 'terminator.desktop', 'google-chrome.desktop', 'filezilla.desktop', 'gedit.desktop', 'revelation.desktop', 'skype.desktop', 'gcalctool.desktop']"
+
+
+# auto clean
+sudo apt-get autoclean
+sudo apt-get autoremove -y
+
+sudo reboot
