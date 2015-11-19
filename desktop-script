@@ -24,7 +24,7 @@ sudo apt-get -y upgrade
 echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
 
 # list of APT main packages to install
-packages=('git' 'apache2' 'php5' 'mysql-server' 'php5-mysql' 'phpmyadmin' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk')
+packages=('git' 'git-flow' 'apache2' 'php5' 'mysql-server' 'php5-mysql' 'php5-xdebug' 'phpmyadmin' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'curl')
 
 for i in ${!packages[*]}
 do
@@ -81,10 +81,15 @@ fi
 
 # Php storm 9
 echo -e "\e[1m\e[32mPHP Storm 9...\e[0m\e[39m"
-wget "http://download.jetbrains.com/webide/PhpStorm-9.0.tar.gz"
-mkdir phpstorm && tar xfz PhpStorm-*.tar.gz -C phpstorm
-sudo sh phpstorm/PhpStorm-141.1912/bin/phpstorm.sh
-echo -e "\e[1m\e[32mDone.\e[0m\e[39m
+phpstormDirectory="$HOME/phpstorm"
+if [ ! -d "$phpstormDirectory" ]; then
+	wget "http://download.jetbrains.com/webide/PhpStorm-9.0.tar.gz"
+	mkdir phpstorm && tar xfz PhpStorm-*.tar.gz -C phpstorm
+	sudo sh phpstorm/PhpStorm-141.1912/bin/phpstorm.sh
+	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+else
+	echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m" 
+fi
 
 
 # Printer software
@@ -102,9 +107,30 @@ else
         echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
 fi
 
+# RVM
+echo -e "\e[1m\e[32mRVM...\e[0m\e[39m"
+rvmInstalled=$(env | grep "rvm")
+if [ "" == "$rvmInstalled" ]; then
+	sudo apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev
+	curl -L https://get.rvm.io | bash -s stable
+	source ~/.rvm/scripts/rvm
+	rvm install 2.2.3
+	rvm use 2.2.3 --default
+	ruby -v
+
+	# SASS
+	rvm all do gem install sass
+
+	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
+else
+        echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
+fi
+
+
+
 # Set favorites
 echo -e "\e[1m\e[32mSet favorites.\e[0m\e[39m"
-dconf write /org/gnome/shell/favorite-apps "['nautilus.desktop', 'terminator.desktop', 'google-chrome.desktop', 'filezilla.desktop', 'gedit.desktop', 'revelation.desktop', 'skype.desktop', 'gcalctool.desktop']"
+dconf write /org/gnome/shell/favorite-apps "['nautilus.desktop', 'terminator.desktop', 'google-chrome.desktop', 'filezilla.desktop','gedit.desktop', 'revelation.desktop', 'skype.desktop', 'gcalctool.desktop']"
 
 
 # auto clean
