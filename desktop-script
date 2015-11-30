@@ -24,7 +24,7 @@ sudo apt-get -y upgrade
 echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
 
 # list of APT main packages to install
-packages=('git' 'git-flow' 'apache2' 'php5' 'mysql-server' 'php5-mysql' 'php5-xdebug' 'phpmyadmin' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'curl')
+packages=('git' 'git-flow' 'apache2' 'php5' 'mysql-server' 'php5-mysql' 'php5-xdebug' 'phpmyadmin' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'curl' 'imagemagick')
 
 for i in ${!packages[*]}
 do
