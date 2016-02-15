@@ -126,7 +126,19 @@ else
         echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
 fi
 
+#  Simple vhost creator
+mkdir ~/scripts
+git clone https://github.com/devgiants/simple-vhost-creator.git ~/scripts
+sudo ln -s ~/scripts/simple-vhost-creator/vhost-creator /usr/bin/vhost-creator
 
+# Git aware prompt
+mkdir ~/.bash
+git clone https://github.com/jimeh/git-aware-prompt.git ~/.bash
+
+echo "export GITAWAREPROMPT=~/.bash/git-aware-prompt" >> ~/.bashrc
+echo "source \"${GITAWAREPROMPT}/main.sh\"" >> ~/.bashrc
+
+source ~/.bashrc
 
 # Set favorites
 echo -e "\e[1m\e[32mSet favorites.\e[0m\e[39m"
