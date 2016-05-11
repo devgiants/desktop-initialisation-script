@@ -24,7 +24,7 @@ sudo apt-get -y upgrade
 echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
 
 # list of APT main packages to install
-packages=('git' 'git-flow' 'apache2' 'php5' 'mysql-server' 'php5-mysql' 'php5-xdebug' 'php5-imagick' 'phpmyadmin' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'curl' 'gimp')
+packages=('git' 'git-flow' 'php7.0' 'apache2' 'libapache2-mod-php7.0' 'php-xml' 'mysql-server' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'composer' 'curl' 'gimp')
 
 for i in ${!packages[*]}
 do
@@ -34,14 +34,30 @@ do
 
 	# Last config
 	case "${packages[$i]}" in
-		"phpmyadmin")
+	"apache2")
 		echo -e "\e[1m\e[32mComplementary steps for ${packages[$i]} \e[0m\e[39m"
-		# Create symlink to phpmyadmin apache conf file directly to sites-enabled
-		sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/sites-enabled/phpmyadmin.conf
+		sudo chown -R nicolas:www-data /var/www/html
+		sudo chmod g+s /var/www/html
+		sudo sed -i.bak s/APACHE_RUN_USER=www-data/APACHE_RUN_USER=nicolas/g /etc/apache2/envvars
 		sudo service apache2 restart
-
+		ln -s /var/www/html ~/sites
+		
+		;;
+	"git")
+		echo -e "\e[1m\e[32mComplementary steps for ${packages[$i]} \e[0m\e[39m"
+		git config --global user.name "Nicolas BONNIOT"
+		git config --global user.email "nicolas@devgiants.fr"
+		;;
 	esac
 done
+
+# Adminer
+sudo mkdir /usr/share/adminer
+sudo wget "http://www.adminer.org/latest.php" -O /usr/share/adminer/latest.php
+sudo ln -s /usr/share/adminer/latest.php /usr/share/adminer/adminer.php
+echo "Alias /adminer.php /usr/share/adminer/adminer.php" | sudo tee /etc/apache2/conf-available/adminer.conf
+sudo a2enconf adminer.conf
+sudo service apache2 restart
 
 
 # Chrome
@@ -112,14 +128,25 @@ echo -e "\e[1m\e[32mRVM...\e[0m\e[39m"
 rvmInstalled=$(env | grep "rvm")
 if [ "" == "$rvmInstalled" ]; then
 	sudo apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev
-	curl -L https://get.rvm.io | bash -s stable
+	gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+	\curl -sSL https://get.rvm.io | bash -s stable
 	source ~/.rvm/scripts/rvm
 	rvm install 2.2.3
 	rvm use 2.2.3 --default
 	ruby -v
 
-	# SASS
-	rvm all do gem install sass
+	# SASS
+	#rvm all do gem install sass
+	gem install sass
+
+	# Capistrano
+	gem install capistrano
+
+	# Symfony for capistrano
+	gem install capistrano-symfony
+
+	# Composer for capistrano
+	gem install capistrano-composer
 
 	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
 else
@@ -128,15 +155,19 @@ fi
 
 #  Simple vhost creator
 mkdir ~/scripts
-git clone https://github.com/devgiants/simple-vhost-creator.git ~/scripts
+git clone https://github.com/devgiants/simple-vhost-creator.git ~/scripts/simple-vhost-creator
+chmod +x ~/scripts/simple-vhost-creator/vhost-creator
 sudo ln -s ~/scripts/simple-vhost-creator/vhost-creator /usr/bin/vhost-creator
+sudo ln -s ~/scripts/simple-vhost-creator/vhost_template.conf /usr/bin/vhost_template.conf
 
 # Git aware prompt
 mkdir ~/.bash
-git clone https://github.com/jimeh/git-aware-prompt.git ~/.bash
+git clone https://github.com/jimeh/git-aware-prompt.git ~/.bash/gap
 
-echo "export GITAWAREPROMPT=~/.bash/git-aware-prompt" >> ~/.bashrc
-echo "source \"${GITAWAREPROMPT}/main.sh\"" >> ~/.bashrc
+echo "# Add Git aware prompt" >> ~/.bashrc
+echo "export GITAWAREPROMPT=~/.bash/gap" >> ~/.bashrc
+echo "source \"\${GITAWAREPROMPT}/main.sh\"" >> ~/.bashrc
+echo "export PS1=\"\\\${debian_chroot:+(\\\$debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\] \[\$txtcyn\]\\\$git_branch\[\$txtred\]\\\$git_dirty\[\$txtrst\]\\\$ \"" >> ~/.bashrc
 
 source ~/.bashrc
 
@@ -144,7 +175,7 @@ source ~/.bashrc
 echo -e "\e[1m\e[32mSet favorites.\e[0m\e[39m"
 dconf write /org/gnome/shell/favorite-apps "['nautilus.desktop', 'terminator.desktop', 'google-chrome.desktop', 'filezilla.desktop','gedit.desktop', 'revelation.desktop', 'skype.desktop', 'gcalctool.desktop']"
 
-# Set list view as defalut one for nautilus
+# Set list view as default one for nautilus
 gsettings set org.gnome.nautilus.preferences default-folder-viewer 'list-view'
 
 # auto clean
