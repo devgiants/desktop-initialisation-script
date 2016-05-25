@@ -24,7 +24,7 @@ sudo apt-get -y upgrade
 echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
 
 # list of APT main packages to install
-packages=('git' 'git-flow' 'php7.0' 'php7.0-mysql' 'apache2' 'libapache2-mod-php7.0' 'php-xml' 'mysql-server' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'composer' 'curl' 'gimp')
+packages=('git' 'git-flow' 'php7.0' 'php7.0-mysql' 'apache2' 'libapache2-mod-php7.0' 'php-xml' 'mysql-server' 'poedit' 'terminator' 'filezilla' 'vlc' 'browser-plugin-vlc' 'owncloud-client' 'revelation' 'default-jre' 'default-jdk' 'composer' 'curl' 'gimp' 'ruby-full')
 
 for i in ${!packages[*]}
 do
@@ -123,35 +123,18 @@ else
         echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
 fi
 
-# RVM
-echo -e "\e[1m\e[32mRVM...\e[0m\e[39m"
-rvmInstalled=$(env | grep "rvm")
-if [ "" == "$rvmInstalled" ]; then
-	sudo apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev
-	gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-	\curl -sSL https://get.rvm.io | bash -s stable
-	source ~/.rvm/scripts/rvm
-	rvm install 2.2.3
-	rvm use 2.2.3 --default
-	ruby -v
+# SASS
 
-	# SASS
-	#rvm all do gem install sass
-	gem install sass
+sudo gem install sass
 
-	# Capistrano
-	gem install capistrano
+# Capistrano
+gem install capistrano
 
-	# Symfony for capistrano
-	gem install capistrano-symfony
+# Symfony for capistrano
+gem install capistrano-symfony
 
-	# Composer for capistrano
-	gem install capistrano-composer
-
-	echo -e "\e[1m\e[32mDone.\e[0m\e[39m"
-else
-        echo -e "\e[1m\e[32mAlready installed.\e[0m\e[39m"
-fi
+# Composer for capistrano
+gem install capistrano-composer
 
 #  Simple vhost creator
 mkdir ~/scripts
